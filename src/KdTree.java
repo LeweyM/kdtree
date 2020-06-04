@@ -133,7 +133,22 @@ public class KdTree {
     }
 
     public Point2D nearest(Point2D p) {
-        return null;
+        Node node = nearestInSubtree(root, p, null, true);
+        assert(node != null);
+        return node.point();
+    }
+
+    private Node nearestInSubtree(Node node, Point2D p, Node closestNode, boolean isVertical) {
+        if (node == null) return closestNode;
+        double dist = node.point().distanceTo(p);
+        if (closestNode == null || dist < closestNode.point().distanceTo(p)) {
+            closestNode = node;
+        }
+
+        closestNode = nearestInSubtree(node.left(), p, closestNode, !isVertical);
+        closestNode = nearestInSubtree(node.right(), p, closestNode, !isVertical);
+
+        return closestNode;
     }
 
     private boolean isInSubtree(Node node, Point2D p) {

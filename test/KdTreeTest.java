@@ -38,14 +38,14 @@ class KdTreeTest {
         assertTrue(pSet.contains(p2));
     }
 
-//    @Test
-//    void nearest_point() {
-//        insertPoint(0, 0);
-//        insertPoint(0, 1);
-//        insertPoint(1, 1);
-//        assertEquals(pSet.nearest(new Point2D(0.1, 0.1)), new Point2D(0, 0));
-//    }
-//
+    @Test
+    void nearest_point() {
+        insertPoint(0, 0);
+        insertPoint(0, 1);
+        insertPoint(1, 1);
+        assertEquals(pSet.nearest(new Point2D(0.1, 0.1)), new Point2D(0, 0));
+    }
+
 //    @Test
 //    void range() {
 //        insertPoint(0, 0);
