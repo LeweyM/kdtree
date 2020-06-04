@@ -1,6 +1,5 @@
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
-import edu.princeton.cs.algs4.SET;
 import edu.princeton.cs.algs4.StdDraw;
 
 import java.awt.*;
@@ -13,13 +12,15 @@ public class KdTree {
         size = 0;
     }
 
-    private class Node {
-        private Point2D point;
+    private static class Node {
+        private final Point2D point;
+        private RectHV boundingRect;
         private Node left;
         private Node right;
 
-        public Node(Point2D p) {
+        public Node(Point2D p, RectHV boundingRect) {
             point = p;
+            this.boundingRect = boundingRect;
             left = null;
             right = null;
         }
@@ -43,6 +44,10 @@ public class KdTree {
         public void setRight(Node node) {
             right = node;
         }
+
+        public RectHV boundingRect() {
+            return boundingRect;
+        }
     }
 
     public boolean isEmpty() {
@@ -54,27 +59,53 @@ public class KdTree {
     }
 
     public void insert(Point2D p) {
-        if (size == 0) {
-            root = new Node(p);
-            size = 1;
-        }
-        root = insertNode(root, p, true);
+        root = insertNode(root, p, true, new RectHV(0, 0, 1, 1));
     }
 
-    private Node insertNode(Node node, Point2D p, boolean isVertical) {
+    private Node insertNode(Node node, Point2D p, boolean isVertical, RectHV boundingRect) {
         if (node == null) {
             size++;
-            return new Node(p);
+            return new Node(p, boundingRect);
         }
+
         if (node.point().equals(p)) return node;
+
+        RectHV rect = getRect(p, node, isVertical);
         if (lessOrEqual(node.point(), p, isVertical)) {
-            Node leftSubTree = insertNode(node.left(), p, !isVertical);
+            Node leftSubTree = insertNode(node.left(), p, !isVertical, rect);
             node.setLeft(leftSubTree);
         } else if (more(node.point(), p, isVertical)) {
-            Node rightSubTree = insertNode(node.right(), p, !isVertical);
+            Node rightSubTree = insertNode(node.right(), p, !isVertical, rect);
             node.setRight(rightSubTree);
         }
         return node;
+    }
+
+    private RectHV getRect(Point2D p, Node parent, boolean isVertical) {
+        if (parent == null) return new RectHV(0, 0, 1, 1);
+
+        RectHV parentRect = parent.boundingRect();
+
+        double left = parentRect.xmin();
+        double right = parentRect.xmax();
+        double bottom = parentRect.ymin();
+        double top = parentRect.ymax();
+
+        if (isVertical) {
+            if (p.x() < parent.point().x()) {
+                right = parent.point().x();
+            } else {
+                left = parent.point().x();
+            }
+        } else {
+            if (p.y() < parent.point().y()) {
+                top = parent.point().y();
+            } else {
+                bottom = parent.point().y();
+            }
+        }
+
+        return new RectHV(left, bottom, right, top);
     }
 
     private boolean more(Point2D p1, Point2D p2, boolean isVertical) {
@@ -92,19 +123,23 @@ public class KdTree {
     }
 
     public void draw() {
-        double left = 0;
-        double right = 1;
-        double bottom = 0;
-        double top = 1;
-        draw(root, true, null, left, right, bottom, top);
+        draw(root, true, null);
     }
 
-    private void draw(Node node, boolean isVertical, Node parent, double left, double right, double bottom, double top) {
+    private void draw(Node node, boolean isVertical, Node parent) {
         if (node == null) return;
+
         StdDraw.setPenColor(Color.black);
+        StdDraw.setPenRadius(0.03);
         StdDraw.point(node.point.x(), node.point.y());
 
+        double left = node.boundingRect.xmin();
+        double right = node.boundingRect.xmax();
+        double bottom = node.boundingRect.ymin();
+        double top = node.boundingRect.ymax();
+
         if (isVertical) {
+            StdDraw.setPenRadius(0.01);
             StdDraw.setPenColor(Color.red);
             if (parent != null) {
                 if (node.point().y() < parent.point().y()) {
@@ -115,6 +150,7 @@ public class KdTree {
             }
             StdDraw.line(node.point.x(), bottom, node.point.x(), top);
         } else {
+            StdDraw.setPenRadius(0.01);
             StdDraw.setPenColor(Color.blue);
             if (node.point().x() < parent.point().x()) {
                 right = parent.point().x();
@@ -124,8 +160,8 @@ public class KdTree {
             StdDraw.line(left, node.point.y(), right, node.point.y());
         }
 
-        draw(node.left(), !isVertical, node, left, right, bottom, top);
-        draw(node.right(), !isVertical, node, left, right, bottom, top);
+        draw(node.left(), !isVertical, node);
+        draw(node.right(), !isVertical, node);
     }
 
     public Iterable<Point2D> range(RectHV rect) {
@@ -134,8 +170,9 @@ public class KdTree {
 
     public Point2D nearest(Point2D p) {
         Node node = nearestInSubtree(root, p, null, true);
-        assert(node != null);
+        assert (node != null);
         return node.point();
+
     }
 
     private Node nearestInSubtree(Node node, Point2D p, Node closestNode, boolean isVertical) {
@@ -144,11 +181,35 @@ public class KdTree {
         if (closestNode == null || dist < closestNode.point().distanceTo(p)) {
             closestNode = node;
         }
+        // 2. recurse right if result from recursion is longer than distance to bounding rect.
+        if (closestNode.point().distanceTo(p) < node.boundingRect().distanceTo(p)) {
+            return closestNode;
+        }
 
-        closestNode = nearestInSubtree(node.left(), p, closestNode, !isVertical);
-        closestNode = nearestInSubtree(node.right(), p, closestNode, !isVertical);
+        // 1. recurse in side with p
+        Node searchFirst = sideWithPoint(node, p, isVertical);
+        Node searchSecond = sideWithoutPoint(node, p, isVertical);
+
+        closestNode = nearestInSubtree(searchFirst, p, closestNode, !isVertical);
+        closestNode = nearestInSubtree(searchSecond, p, closestNode, !isVertical);
 
         return closestNode;
+    }
+
+    private Node sideWithPoint(Node node, Point2D p, boolean isVertical) {
+        if (isVertical) {
+            return p.x() <= node.point().x() ? node.left() : node.right();
+        } else {
+            return p.y() <= node.point().y() ? node.left() : node.right();
+        }
+    }
+
+    private Node sideWithoutPoint(Node node, Point2D p, boolean isVertical) {
+        if (isVertical) {
+            return p.x() <= node.point().x() ? node.right() : node.left();
+        } else {
+            return p.y() <= node.point().y() ? node.right() : node.left();
+        }
     }
 
     private boolean isInSubtree(Node node, Point2D p) {
