@@ -3,6 +3,7 @@ import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 public class KdTree {
     int size;
@@ -62,6 +63,27 @@ public class KdTree {
         root = insertNode(root, p, true, new RectHV(0, 0, 1, 1));
     }
 
+    public boolean contains(Point2D p) {
+        return isInSubtree(root, p);
+    }
+
+    public void draw() {
+        draw(root, true, null);
+    }
+
+    public Iterable<Point2D> range(RectHV rect) {
+        ArrayList<Point2D> points = new ArrayList<>();
+        rangeInSubtree(root, rect, points);
+        return points;
+    }
+
+    public Point2D nearest(Point2D p) {
+        Node node = nearestInSubtree(root, p, null, true);
+        assert (node != null);
+        return node.point();
+
+    }
+
     private Node insertNode(Node node, Point2D p, boolean isVertical, RectHV boundingRect) {
         if (node == null) {
             size++;
@@ -118,14 +140,6 @@ public class KdTree {
         else return p1.y() <= p2.y();
     }
 
-    public boolean contains(Point2D p) {
-        return isInSubtree(root, p);
-    }
-
-    public void draw() {
-        draw(root, true, null);
-    }
-
     private void draw(Node node, boolean isVertical, Node parent) {
         if (node == null) return;
 
@@ -164,29 +178,40 @@ public class KdTree {
         draw(node.right(), !isVertical, node);
     }
 
-    public Iterable<Point2D> range(RectHV rect) {
-        return null;
-    }
+    private void rangeInSubtree(Node node, RectHV queryRect, ArrayList<Point2D> points) {
+        // terminate
+        if (node == null) return;
 
-    public Point2D nearest(Point2D p) {
-        Node node = nearestInSubtree(root, p, null, true);
-        assert (node != null);
-        return node.point();
+        // prune
+        if (!queryRect.intersects(node.boundingRect())) return;
 
+        // aggregate
+        Point2D p = node.point();
+        if (queryRect.contains(p)) {
+            points.add(p);
+        }
+
+        // recurse
+        rangeInSubtree(node.left(), queryRect, points);
+        rangeInSubtree(node.right(), queryRect, points);
     }
 
     private Node nearestInSubtree(Node node, Point2D p, Node closestNode, boolean isVertical) {
+        // terminate
         if (node == null) return closestNode;
+
+        // aggregate
         double dist = node.point().distanceTo(p);
         if (closestNode == null || dist < closestNode.point().distanceTo(p)) {
             closestNode = node;
         }
-        // 2. recurse right if result from recursion is longer than distance to bounding rect.
+
+        // prune
         if (closestNode.point().distanceTo(p) < node.boundingRect().distanceTo(p)) {
             return closestNode;
         }
 
-        // 1. recurse in side with p
+        // recurse
         Node searchFirst = sideWithPoint(node, p, isVertical);
         Node searchSecond = sideWithoutPoint(node, p, isVertical);
 

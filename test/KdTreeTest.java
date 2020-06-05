@@ -46,15 +46,15 @@ class KdTreeTest {
         assertEquals(pSet.nearest(new Point2D(0.1, 0.1)), new Point2D(0, 0));
     }
 
-//    @Test
-//    void range() {
-//        insertPoint(0, 0);
-//        insertPoint(0.5, 0.5);
-//        insertPoint(0, 1);
-//        Iterable<Point2D> range = pSet.range(new RectHV(0.2, 0.2, 0.8, 0.8));
-//        assertThat(range, Matchers.contains(new Point2D(0.5, 0.5)));
-//        assertEquals(range.spliterator().getExactSizeIfKnown(), 1);
-//    }
+    @Test
+    void range() {
+        insertPoint(0, 0);
+        insertPoint(0.5, 0.5);
+        insertPoint(0, 1);
+        Iterable<Point2D> range = pSet.range(new RectHV(0.2, 0.2, 0.8, 0.8));
+        assertThat(range, Matchers.contains(new Point2D(0.5, 0.5)));
+        assertEquals(range.spliterator().getExactSizeIfKnown(), 1);
+    }
 
     private void insertPoint(double x, double y) {
         pSet.insert(new Point2D(x, y));
