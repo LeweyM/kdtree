@@ -133,13 +133,13 @@ public class KdTree {
     }
 
     private boolean more(Point2D p1, Point2D p2, boolean isVertical) {
-        if (isVertical) return p1.x() > p2.x();
-        else return p1.y() > p2.y();
+        if (isVertical) return Point2D.X_ORDER.compare(p1, p2) > 0;
+        else return Point2D.Y_ORDER.compare(p1, p2) > 0;
     }
 
     private boolean lessOrEqual(Point2D p1, Point2D p2, boolean isVertical) {
-        if (isVertical) return p1.x() <= p2.x();
-        else return p1.y() <= p2.y();
+        if (isVertical) return Point2D.X_ORDER.compare(p1, p2) <= 0;
+        else return Point2D.Y_ORDER.compare(p1, p2) <= 0;
     }
 
     private void draw(Node node, boolean isVertical, Node parent) {
@@ -246,12 +246,7 @@ public class KdTree {
         if (node.point().x() == p.x() && node.point().y() == p.y()) return true;
 
         // recurse
-        if (isVertical) {
-            if (node.point().x() <= p.x()) return isInSubtree(node.left(), p, false);
-            else return isInSubtree(node.right(), p, false);
-        } else {
-            if (node.point().y() <= p.y()) return isInSubtree(node.left(), p, true);
-            else return isInSubtree(node.right(), p, true);
-        }
+        if (lessOrEqual(node.point(), p, isVertical)) return isInSubtree(node.left(), p, false);
+        else return isInSubtree(node.right(), p, false);
     }
 }
