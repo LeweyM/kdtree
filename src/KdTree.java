@@ -15,7 +15,7 @@ public class KdTree {
 
     private static class Node {
         private final Point2D point;
-        private RectHV boundingRect;
+        private final RectHV boundingRect;
         private Node left;
         private Node right;
 
@@ -60,10 +60,12 @@ public class KdTree {
     }
 
     public void insert(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         root = insertNode(root, p, true, new RectHV(0, 0, 1, 1));
     }
 
     public boolean contains(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         return isInSubtree(root, p);
     }
 
@@ -72,16 +74,17 @@ public class KdTree {
     }
 
     public Iterable<Point2D> range(RectHV rect) {
+        if (rect == null) throw new IllegalArgumentException();
         ArrayList<Point2D> points = new ArrayList<>();
         rangeInSubtree(root, rect, points);
         return points;
     }
 
     public Point2D nearest(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         Node node = nearestInSubtree(root, p, null, true);
         assert (node != null);
         return node.point();
-
     }
 
     private Node insertNode(Node node, Point2D p, boolean isVertical, RectHV boundingRect) {
