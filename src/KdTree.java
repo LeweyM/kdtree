@@ -65,7 +65,7 @@ public class KdTree {
 
     public boolean contains(Point2D p) {
         if (p == null) throw new IllegalArgumentException();
-        return isInSubtree(root, p);
+        return isInSubtree(root, p, true);
     }
 
     public void draw() {
@@ -238,9 +238,20 @@ public class KdTree {
         }
     }
 
-    private boolean isInSubtree(Node node, Point2D p) {
+    private boolean isInSubtree(Node node, Point2D p, boolean isVertical) {
+        // terminate
         if (node == null) return false;
+
+        // assess
         if (node.point().x() == p.x() && node.point().y() == p.y()) return true;
-        return isInSubtree(node.left(), p) || isInSubtree(node.right(), p);
+
+        // recurse
+        if (isVertical) {
+            if (node.point().x() <= p.x()) return isInSubtree(node.left(), p, false);
+            else return isInSubtree(node.right(), p, false);
+        } else {
+            if (node.point().y() <= p.y()) return isInSubtree(node.left(), p, true);
+            else return isInSubtree(node.right(), p, true);
+        }
     }
 }
