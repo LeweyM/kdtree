@@ -22,10 +22,12 @@ public class PointSET {
     }
 
     public void insert(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         points.add(p);
     }
 
     public boolean contains(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         return points.contains(p);
     }
 
@@ -36,6 +38,7 @@ public class PointSET {
     }
 
     public Iterable<Point2D> range(RectHV rect) {
+        if (rect == null) throw new IllegalArgumentException();
         ArrayList<Point2D> pointsInRect = new ArrayList<>();
         for (Point2D p : points) {
             if (p.x() >= rect.xmin()
@@ -49,6 +52,7 @@ public class PointSET {
     }
 
     public Point2D nearest(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         Point2D closestPoint = null;
         for (Point2D point : points) {
             if (p != point && (closestPoint == null || point.distanceSquaredTo(p) < closestPoint.distanceSquaredTo(p))) {
