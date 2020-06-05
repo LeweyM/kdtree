@@ -38,10 +38,10 @@ public class PointSET {
     public Iterable<Point2D> range(RectHV rect) {
         ArrayList<Point2D> pointsInRect = new ArrayList<>();
         for (Point2D p : points) {
-            if (p.x() >= rect.xmin()
-                    && p.x() <= rect.xmax()
-                    && p.y() >= rect.ymin()
-                    && p.y() <= rect.ymax()) {
+            if (   p.x() >= rect.xmin()
+                && p.x() <= rect.xmax()
+                && p.y() >= rect.ymin()
+                && p.y() <= rect.ymax()) {
                 pointsInRect.add(p);
             }
         }
@@ -51,10 +51,13 @@ public class PointSET {
     public Point2D nearest(Point2D p) {
         Point2D closestPoint = null;
         for (Point2D point : points) {
-            if (p != point && (closestPoint == null || point.distanceSquaredTo(p) < closestPoint.distanceSquaredTo(p))) {
+            if (p != point && (closestPoint == null || point.distanceTo(p) < closestPoint.distanceTo(p))) {
                 closestPoint = point;
             }
         }
         return closestPoint;
+    }
+
+    public static void main(String[] args) {
     }
 }

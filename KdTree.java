@@ -2,6 +2,7 @@ import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 public class KdTree {
@@ -145,7 +146,8 @@ public class KdTree {
     private void draw(Node node, boolean isVertical, Node parent) {
         if (node == null) return;
 
-        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.setPenColor(Color.black);
+        StdDraw.setPenRadius(0.03);
         StdDraw.point(node.point.x(), node.point.y());
 
         double left = node.boundingRect.xmin();
@@ -155,7 +157,7 @@ public class KdTree {
 
         if (isVertical) {
             StdDraw.setPenRadius(0.01);
-            StdDraw.setPenColor(StdDraw.RED);
+            StdDraw.setPenColor(Color.red);
             if (parent != null) {
                 if (node.point().y() < parent.point().y()) {
                     top = parent.point().y();
@@ -166,7 +168,7 @@ public class KdTree {
             StdDraw.line(node.point.x(), bottom, node.point.x(), top);
         } else {
             StdDraw.setPenRadius(0.01);
-            StdDraw.setPenColor(StdDraw.BLUE);
+            StdDraw.setPenColor(Color.blue);
             if (node.point().x() < parent.point().x()) {
                 right = parent.point().x();
             } else {
@@ -202,13 +204,13 @@ public class KdTree {
         if (node == null) return closestNode;
 
         // aggregate
-        double dist = node.point().distanceSquaredTo(p);
-        if (closestNode == null || dist < closestNode.point().distanceSquaredTo(p)) {
+        double dist = node.point().distanceTo(p);
+        if (closestNode == null || dist < closestNode.point().distanceTo(p)) {
             closestNode = node;
         }
 
         // prune
-        if (closestNode.point().distanceSquaredTo(p) < node.boundingRect().distanceSquaredTo(p)) {
+        if (closestNode.point().distanceTo(p) < node.boundingRect().distanceTo(p)) {
             return closestNode;
         }
 
